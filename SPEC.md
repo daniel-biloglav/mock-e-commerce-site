@@ -12,43 +12,43 @@ Implement a fully functional shopping cart that lets users view their cart, see 
 
 The existing `CartItem` model is reused unchanged:
 
-| Field         | Type      | Description                           |
-| ------------- | --------- | ------------------------------------- |
-| `productId`   | `int`     | FK to product catalog                 |
-| `productName` | `string`  | Snapshot of name when added           |
-| `unitPrice`   | `decimal` | Snapshot of price when added          |
-| `quantity`    | `int`     | Units in cart (1–5)                   |
-| `totalPrice`  | `decimal` | Computed: `unitPrice × quantity`      |
+| Field         | Type      | Description                      |
+| ------------- | --------- | -------------------------------- |
+| `productId`   | `int`     | FK to product catalog            |
+| `productName` | `string`  | Snapshot of name when added      |
+| `unitPrice`   | `decimal` | Snapshot of price when added     |
+| `quantity`    | `int`     | Units in cart (1–5)              |
+| `totalPrice`  | `decimal` | Computed: `unitPrice × quantity` |
 
 Request bodies:
 
-| DTO                   | Fields                          | Used by         |
-| --------------------- | ------------------------------- | --------------- |
-| `AddToCartRequest`    | `productId: int, quantity: int` | `POST /api/cart`            |
-| `UpdateCartRequest`   | `quantity: int`                 | `PUT /api/cart/{productId}` |
+| DTO                 | Fields                          | Used by                     |
+| ------------------- | ------------------------------- | --------------------------- |
+| `AddToCartRequest`  | `productId: int, quantity: int` | `POST /api/cart`            |
+| `UpdateCartRequest` | `quantity: int`                 | `PUT /api/cart/{productId}` |
 
 ### API Endpoints
 
-| Method | Route                    | Success Response         | Description |
-| ------ | ------------------------ | ------------------------ | ----------- |
-| GET    | `/api/cart`              | `200` with `CartItem[]`  | Returns all cart items. Empty cart → empty array `[]`. |
-| POST   | `/api/cart`              | `201` with `CartItem` (new) / `200` with `CartItem` (existing, quantity incremented) | Adds a product or increments quantity of an existing item. |
-| PUT    | `/api/cart/{productId}`  | `200` with updated `CartItem` | Sets the quantity of an existing cart item to the provided value (absolute, not relative). |
-| DELETE | `/api/cart/{productId}`  | `204 No Content`         | Removes a single item from the cart. |
-| DELETE | `/api/cart`              | `204 No Content`         | Clears all items from the cart. |
+| Method | Route                   | Success Response                                                                     | Description                                                                                |
+| ------ | ----------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| GET    | `/api/cart`             | `200` with `CartItem[]`                                                              | Returns all cart items. Empty cart → empty array `[]`.                                     |
+| POST   | `/api/cart`             | `201` with `CartItem` (new) / `200` with `CartItem` (existing, quantity incremented) | Adds a product or increments quantity of an existing item.                                 |
+| PUT    | `/api/cart/{productId}` | `200` with updated `CartItem`                                                        | Sets the quantity of an existing cart item to the provided value (absolute, not relative). |
+| DELETE | `/api/cart/{productId}` | `204 No Content`                                                                     | Removes a single item from the cart.                                                       |
+| DELETE | `/api/cart`             | `204 No Content`                                                                     | Clears all items from the cart.                                                            |
 
 ### Validation & Error Responses
 
 All error responses use the **RFC 9457 Problem Details** format via ASP.NET's `TypedResults.ValidationProblem(...)`.
 
-| Scenario | Applies to | Status | Response body (key detail) |
-| --- | --- | --- | --- |
-| `quantity < 1` | POST, PUT | `400` | `{ errors: { "quantity": ["Quantity must be between 1 and 5."] } }` |
-| `quantity > 5` | POST, PUT | `400` | `{ errors: { "quantity": ["Quantity must be between 1 and 5."] } }` |
-| Resulting quantity would exceed 5 after increment | POST (existing item) | `400` | `{ errors: { "quantity": ["Adding {requested} would exceed the maximum of 5. You already have {current} in your cart."] } }` |
-| `productId` not found in product catalog | POST | `404` | `"Product with ID {id} not found."` |
-| `productId` not found in cart | PUT, DELETE (single) | `404` | Not Found (no body) |
-| Missing / malformed request body | POST, PUT | `400` | Framework-generated validation problem |
+| Scenario                                          | Applies to           | Status | Response body (key detail)                                                                                                   |
+| ------------------------------------------------- | -------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `quantity < 1`                                    | POST, PUT            | `400`  | `{ errors: { "quantity": ["Quantity must be between 1 and 5."] } }`                                                          |
+| `quantity > 5`                                    | POST, PUT            | `400`  | `{ errors: { "quantity": ["Quantity must be between 1 and 5."] } }`                                                          |
+| Resulting quantity would exceed 5 after increment | POST (existing item) | `400`  | `{ errors: { "quantity": ["Adding {requested} would exceed the maximum of 5. You already have {current} in your cart."] } }` |
+| `productId` not found in product catalog          | POST                 | `404`  | `"Product with ID {id} not found."`                                                                                          |
+| `productId` not found in cart                     | PUT, DELETE (single) | `404`  | Not Found (no body)                                                                                                          |
+| Missing / malformed request body                  | POST, PUT            | `400`  | Framework-generated validation problem                                                                                       |
 
 ### PUT Semantics — Absolute Replace
 
@@ -62,29 +62,29 @@ When POSTing a `productId` that already exists in the cart, the `quantity` in th
 
 The existing interface methods are implemented:
 
-| Method                           | Behaviour                                                    |
-| -------------------------------- | ------------------------------------------------------------ |
-| `GetAll()`                       | Returns a snapshot of all cart items.                         |
-| `GetByProductId(int productId)`  | Returns the matching `CartItem` or `null`.                   |
-| `Add(CartItem item)`             | Adds a new item or increments quantity on existing item. Returns the resulting item. |
-| `Remove(int productId)`          | Removes item; returns `true` if found, `false` otherwise.    |
-| `Clear()`                        | Removes all items.                                           |
+| Method                          | Behaviour                                                                            |
+| ------------------------------- | ------------------------------------------------------------------------------------ |
+| `GetAll()`                      | Returns a snapshot of all cart items.                                                |
+| `GetByProductId(int productId)` | Returns the matching `CartItem` or `null`.                                           |
+| `Add(CartItem item)`            | Adds a new item or increments quantity on existing item. Returns the resulting item. |
+| `Remove(int productId)`         | Removes item; returns `true` if found, `false` otherwise.                            |
+| `Clear()`                       | Removes all items.                                                                   |
 
 A new method is added to support PUT:
 
-| Method | Signature | Behaviour |
-| --- | --- | --- |
+| Method   | Signature                                       | Behaviour                                                                             |
+| -------- | ----------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `Update` | `CartItem? Update(int productId, int quantity)` | Sets quantity of an existing cart item. Returns updated item, or `null` if not found. |
 
 All mutations are thread-safe using the existing `Lock` field.
 
 ### Max-Quantity Enforcement Summary
 
-| Operation | Rule |
-| --- | --- |
-| POST (new item) | `quantity` must be 1–5. |
+| Operation            | Rule                                               |
+| -------------------- | -------------------------------------------------- |
+| POST (new item)      | `quantity` must be 1–5.                            |
 | POST (existing item) | `currentQuantity + requestedQuantity` must be ≤ 5. |
-| PUT | `quantity` must be 1–5 (absolute set). |
+| PUT                  | `quantity` must be 1–5 (absolute set).             |
 
 Stock-level enforcement (checking `product.Stock`) is **out of scope** for this iteration — only the per-item max of 5 is enforced.
 
@@ -118,12 +118,12 @@ A new **CartPage** component is displayed when the user clicks the cart icon in 
 
 New functions:
 
-| Function | Method | URL | Body | Returns |
-| --- | --- | --- | --- | --- |
-| `fetchCart()` | GET | `/api/cart` | — | `CartItem[]` |
-| `updateCartItem(productId, quantity)` | PUT | `/api/cart/{productId}` | `{ quantity }` | `CartItem` |
-| `removeFromCart(productId)` | DELETE | `/api/cart/{productId}` | — | `void` |
-| `clearCart()` | DELETE | `/api/cart` | — | `void` |
+| Function                              | Method | URL                     | Body           | Returns      |
+| ------------------------------------- | ------ | ----------------------- | -------------- | ------------ |
+| `fetchCart()`                         | GET    | `/api/cart`             | —              | `CartItem[]` |
+| `updateCartItem(productId, quantity)` | PUT    | `/api/cart/{productId}` | `{ quantity }` | `CartItem`   |
+| `removeFromCart(productId)`           | DELETE | `/api/cart/{productId}` | —              | `void`       |
+| `clearCart()`                         | DELETE | `/api/cart`             | —              | `void`       |
 
 The existing `CartItem` interface already defined in `api/index.ts` is **exported** so other modules can use it. It is also added to `types/index.ts` for consistency.
 
@@ -156,20 +156,20 @@ When `POST /api/cart` returns `400` due to max-quantity exceeded, the notificati
 
 ## Edge Cases
 
-| Case | Expected Behaviour |
-| --- | --- |
-| Add product not in catalog (`productId: 999`) | `404` with message. |
-| Add with `quantity: 0` | `400` validation error. |
-| Add with `quantity: -1` | `400` validation error. |
-| Add with `quantity: 6` | `400` validation error. |
-| Add 3 of item already at quantity 3 | `400` — would result in 6, exceeds max. |
-| Add 2 of item already at quantity 3 | `200` — total becomes 5 (OK). |
-| PUT on item not in cart | `404`. |
-| PUT with `quantity: 0` | `400` validation error. |
-| PUT with `quantity: 6` | `400` validation error. |
-| DELETE item not in cart | `404`. |
-| DELETE all when cart is empty | `204` (idempotent, no error). |
-| GET cart when empty | `200` with `[]`. |
-| Non-integer `productId` in URL | Framework returns `400` (route constraint `{productId:int}`). |
-| Missing request body on POST/PUT | Framework returns `400`. |
-| Concurrent requests mutating the same cart | Thread-safe via `Lock` — serialized access, no data corruption. |
+| Case                                          | Expected Behaviour                                              |
+| --------------------------------------------- | --------------------------------------------------------------- |
+| Add product not in catalog (`productId: 999`) | `404` with message.                                             |
+| Add with `quantity: 0`                        | `400` validation error.                                         |
+| Add with `quantity: -1`                       | `400` validation error.                                         |
+| Add with `quantity: 6`                        | `400` validation error.                                         |
+| Add 3 of item already at quantity 3           | `400` — would result in 6, exceeds max.                         |
+| Add 2 of item already at quantity 3           | `200` — total becomes 5 (OK).                                   |
+| PUT on item not in cart                       | `404`.                                                          |
+| PUT with `quantity: 0`                        | `400` validation error.                                         |
+| PUT with `quantity: 6`                        | `400` validation error.                                         |
+| DELETE item not in cart                       | `404`.                                                          |
+| DELETE all when cart is empty                 | `204` (idempotent, no error).                                   |
+| GET cart when empty                           | `200` with `[]`.                                                |
+| Non-integer `productId` in URL                | Framework returns `400` (route constraint `{productId:int}`).   |
+| Missing request body on POST/PUT              | Framework returns `400`.                                        |
+| Concurrent requests mutating the same cart    | Thread-safe via `Lock` — serialized access, no data corruption. |

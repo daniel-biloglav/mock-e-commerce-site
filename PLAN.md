@@ -24,14 +24,14 @@ This sets an existing cart item's quantity to the given value and returns the up
 
 Replace all `throw new NotImplementedException()` bodies with real logic. All mutations must lock on the existing `_lock` field.
 
-| Method | Implementation |
-| --- | --- |
-| `GetAll()` | Lock, return a copy of `_cart` (e.g. `_cart.ToList()`). |
-| `GetByProductId(int)` | Lock, find by `ProductId`, return item or `null`. |
-| `Add(CartItem)` | Lock, check if item with same `ProductId` exists. If yes, increment `Quantity` and update `TotalPrice`. If no, add to list. Return the item. |
-| `Remove(int)` | Lock, find and remove by `ProductId`. Return `true`/`false`. |
-| `Clear()` | Lock, call `_cart.Clear()`. |
-| `Update(int, int)` | Lock, find by `ProductId`. If found, set `Quantity` and recompute `TotalPrice`. Return item or `null`. |
+| Method                | Implementation                                                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GetAll()`            | Lock, return a copy of `_cart` (e.g. `_cart.ToList()`).                                                                                      |
+| `GetByProductId(int)` | Lock, find by `ProductId`, return item or `null`.                                                                                            |
+| `Add(CartItem)`       | Lock, check if item with same `ProductId` exists. If yes, increment `Quantity` and update `TotalPrice`. If no, add to list. Return the item. |
+| `Remove(int)`         | Lock, find and remove by `ProductId`. Return `true`/`false`.                                                                                 |
+| `Clear()`             | Lock, call `_cart.Clear()`.                                                                                                                  |
+| `Update(int, int)`    | Lock, find by `ProductId`. If found, set `Quantity` and recompute `TotalPrice`. Return item or `null`.                                       |
 
 **Note:** The service layer does NOT enforce the max-quantity-of-5 rule — that validation lives in the endpoint layer so it can return proper HTTP error responses.
 
